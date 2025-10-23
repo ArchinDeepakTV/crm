@@ -1,5 +1,7 @@
 import React from "react";
 import forge from "node-forge";
+import dotenv from 'dotenv';
+dotenv.config();
 // You can fetch the public key from server or import as string
 
 const LoginForm = () => {
@@ -23,7 +25,7 @@ const LoginForm = () => {
     try {
       const encryptedPwd = encryptPassword(password);
 
-      const res = await fetch("http://localhost:3001/login", {
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password: encryptedPwd }),
