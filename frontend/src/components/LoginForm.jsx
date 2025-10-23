@@ -1,7 +1,5 @@
 import React from "react";
 import forge from "node-forge";
-import dotenv from 'dotenv';
-dotenv.config();
 // You can fetch the public key from server or import as string
 
 const LoginForm = () => {
@@ -23,19 +21,34 @@ const LoginForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const encryptedPwd = encryptPassword(password);
+      // await the encryption (was missing before)
+      const encryptedPwd = await encryptPassword(password);
 
-      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/login`, {
+      const backendUrl = import.meta.env.VITE_BACKEND_URL;
+      if (!backendUrl) {
+        setMessage("VITE_BACKEND_URL not configured");
+        return;
+      }
+
+      const res = await fetch(`${backendUrl}/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password: encryptedPwd }),
       });
 
+      if (!res.ok) {
+        const err = await res.json().catch(() => null);
+        setMessage(
+          err && err.message ? `Login failed: ${err.message}` : "Login failed",
+        );
+        return;
+      }
+
       const data = await res.json();
       setMessage(data.success ? "Login successful!" : "Login failed");
     } catch (err) {
       console.error(err);
-      setMessage("Error connecting to server");
+      setMessage("Error connecting to server or encrypting password");
     }
   };
 
